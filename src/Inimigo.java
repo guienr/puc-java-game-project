@@ -8,13 +8,13 @@ public class Inimigo extends Base
         this.boss = classificação;
     }
 
-    public int atkEspecial(int turno)
+    public boolean atkEspecial(int turno)
     {
         if(this.boss == 1 && turno % 3 == 0)
         {
-            return 1;
+            return true;
         }
-        return 0;
+        return false;
     }
     
 }

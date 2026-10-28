@@ -1,4 +1,3 @@
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Main
@@ -55,7 +54,7 @@ public class Main
         System.out.println("\nQual classe voce quer jogar?");
         System.out.println("(1) Guerreiro | HP: 120 | MP: 20 | ATK: 10 | SPD: 5");
         System.out.println("Habilidade 1: Golpe Pesado: Custa 5 MP. Causa 1,5x de dano.");
-        System.out.println("Habilidade 2: Defesa de Ferro: Custa 6 MP. O Guerreiro recebe apenas metade do dano no próximo turno e da um contra-ataque.");
+        System.out.println("Habilidade 2: Defesa de Ferro: Custa 6 MP. O Guerreiro recebe apenas metade do dano do inimigo e da um contra-ataque.");
         System.out.println("Habilidade 3: Grito de Guerra: Custa 8 MP. Aumenta o próprio ataque em +3 por 3 turnos.");
         System.out.println("Habilidade 4: Investida Final: Custa 15 MP. Causa 2,5x de dano.\n");
         System.out.println("(2) Ladino | HP: 70 | MP: 30 | ATK: 16 | SPD: 9");
@@ -90,7 +89,7 @@ public class Main
                 }
 
             } 
-            catch(InputMismatchException e) 
+            catch(Exception e) 
             {
                 System.out.println("\nPor favor, digite apenas um número inteiro!\n");
             }
@@ -112,10 +111,10 @@ public class Main
         booolean v = false;
 
         Inimigo minion1 = new Inimigo("m1", 30, 6, 4, 0);
-        v = executarBatalha(j, minion1, leitor);
+        v = executarBatalha(j, minion1, leitor, progresso);
 
         limpartela();
-        if(v == true)
+        if(v)
         {
             vitoria(j, minion1);
             progresso++;
@@ -127,10 +126,10 @@ public class Main
 
         
         Inimigo boss1 = new Inimigo("b1", 80, 10, 5, 1);
-        v = executarBatalha(j, boss1, leitor);
+        v = executarBatalha(j, boss1, leitor, progresso);
 
         limpartela();
-        if(v == true)
+        if(v)
         {
             vitoria(j, boss1);
             progresso++;
@@ -141,10 +140,10 @@ public class Main
         }
 
         Inimigo minion2 = new Inimigo("m2", 40, 7, 5, 0);
-        v = executarBatalha(j, minion2, leitor);
+        v = executarBatalha(j, minion2, leitor, progresso);
 
         limpartela();
-        if(v == true)
+        if(v)
         {
             vitoria(j, boss1);
             progresso++;
@@ -155,10 +154,10 @@ public class Main
         }
 
         Inimigo minion3 = new Inimigo("m3", 45, 8, 5, 0);
-        v = executarBatalha(j, minion3, leitor);
+        v = executarBatalha(j, minion3, leitor, progresso);
 
         limpartela();
-        if(v == true)
+        if(v)
         {
             vitoria(j, boss1);
             progresso++;
@@ -169,10 +168,10 @@ public class Main
         }
 
         Inimigo boss2 = new Inimigo("b2", 130, 13, 6, 1);
-        v = executarBatalha(j, boss2, leitor);
+        v = executarBatalha(j, boss2, leitor, progresso);
 
         limpartela();
-        if(v == true)
+        if(v)
         {
             vitoria(j, boss1);
             progresso++;
@@ -186,7 +185,7 @@ public class Main
         v = utarBatalha(j, minion4, leitor);
 
         limpartela();
-        if(v == true)
+        if(v)
         {
             vitoria(j, boss1);
             progresso++;
@@ -197,10 +196,10 @@ public class Main
         }
 
         Inimigo minion5 = new Inimigo("m5", 60, 10, 6, 0);
-        v = executarBatalha(j, minion5, leitor);
+        v = executarBatalha(j, minion5, leitor, progresso);
 
         limpartela();
-        if(v == true)
+        if(v)
         {
             vitoria(j, boss1);
             progresso++;
@@ -211,10 +210,10 @@ public class Main
         }
 
         Inimigo minion6 = new Inimigo("m6", 65, 11, 7, 0);
-        v = executarBatalha(j, minion6, leitor);
+        v = executarBatalha(j, minion6, leitor, progresso);
 
         limpartela();
-        if(v == true)
+        if(v)
         {
             vitoria(j, boss1);
             progresso++;
@@ -225,10 +224,10 @@ public class Main
         }
 
         Inimigo boss3 = new Inimigo("b3", 110, 16, 7, 1);
-        v = executarBatalha(j, boss3, leitor);
+        v = executarBatalha(j, boss3, leitor, progresso);
 
         limpartela();
-        if(v == true)
+        if(v)
         {
             vitoria(j, boss1);
             progresso++;
@@ -239,7 +238,7 @@ public class Main
         }
 
         Inimigo boss4 = new Inimigo("b3 2 fase", 110, 20, 7, 1);
-        v = executarBatalha(j, boss4, leitor);  
+        v = executarBatalha(j, boss4, leitor, progresso);  
 
         limpartela();
         if(v == false)
@@ -281,5 +280,3 @@ public class Main
 }
 
 // criar recompensas
-// escrever habilidades
-// arrumar batalha

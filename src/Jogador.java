@@ -16,31 +16,24 @@ public class Jogador extends Base
         switch(classe) 
         {
             case 1:
-                i.receberDano(j.getATK * 1.5);
+                i.receberDano(this.getATK * 1.5);
                 this.perdeMP(5);
                 break;
-            
-            case 2:
-                //fazer
-                break;
-
+                
             case 3:
-                i.receberDano(j.getATK * 2);
+                i.receberDano(this.getATK * 2);
                 this.perdeMP(8);
                 break;
         }
     }
 
-    public habilidade2(int classe, Inimigo i)
+    public void habilidade2(int classe, Inimigo i)
     {
         switch(classe) 
-        {
-            case 1:
-                //fazer
-                break;
-            
+        {   
             case 2:
-                //fazer
+                i.receberDano(this.getATK() * 1.5);
+                this.perdeMP(6);
                 break;
 
             case 3:
@@ -50,43 +43,39 @@ public class Jogador extends Base
         }
     }
 
-    public habilidade3(int classe, Inimigo i)
+    public void habilidade3(int classe, Inimigo i)
     {
         switch(classe) 
         {
-            case 1:
-                
-                break;
-            
             case 2:
-                i.receberDano(j.getATK);
-                j.curar(j.getATK);
+                i.receberDano(this.getATK);
+                j.curar(this.getATK);
                 this.perdeMP(8);
                 break;
 
             case 3:
-                i.receberDano(j.getATK * 0.5);
+                i.receberDano(this.getATK * 0.5);
                 this.recuperarMP(15);
                 break;
         }
     }
 
-    public habilidade4(int classe, Inimigo i)
+    public void habilidade4(int classe, Inimigo i)
     {
         switch(classe) 
         {
             case 1:
-                i.receberDano(j.getATK * 2.5);
+                i.receberDano(this.getATK * 2.5);
                 this.perdeMP(15);
                 break;
             
             case 2:
-                i.receberDano(j.getATK * 3);
+                i.receberDano(this.getATK * 3);
                 this.perdeMP(14);
                 break;
 
             case 3:
-                i.receberDano(j.getATK * 3);
+                i.receberDano(this.getATK * 3);
                 this.perdeMP(20);
                 break;
         }
@@ -107,15 +96,15 @@ public class Jogador extends Base
         this.bomba++;
     }
 
-    public int verificaPocHP()
+    public boolean verificaPocHP()
     {
         if(this.pocaohp > 0)
         {
-            return 1;
+            return true;
         }
         else
         {
-            return 0;
+            return false;
         }
     }
 
@@ -125,15 +114,15 @@ public class Jogador extends Base
         this.pocaohp--;
     }
 
-    public int verificaPocMP()
+    public boolean verificaPocMP()
     {
         if(this.pocaomp > 0)
         {
-            return 1;
+            return true;
         }
         else
         {
-            return 0;
+            return false;
         }
     }
 
@@ -143,15 +132,15 @@ public class Jogador extends Base
         this.pocaomp--;
     }
 
-    public int verificaBomba()
+    public boolean verificaBomba()
     {
         if(this.bomba > 0)
         {
-            return 1;
+            return true;
         }
         else
         {
-            return 0;
+            return false;
         }
     }
 
@@ -166,5 +155,3 @@ public class Jogador extends Base
     }
 
 }
-
-//fazer habilidades que faltam

@@ -1,4 +1,4 @@
-public class Base
+public abstract class Base
 {
     protected String nome;
     protected int hp;
@@ -30,13 +30,13 @@ public class Base
         this.spd = spd;
     }
 
-    public int Vivo()
+    public boolean Vivo()
     {
         if(this.hp > 0)
         {
-            return 1;
+            return true;
         }
-        return 0;
+        return false;
     }
 
     public void receberDano(int dano) 
