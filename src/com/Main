@@ -1,0 +1,294 @@
+package com.roguelike;
+
+import com.almasb.fxgl.app.GameApplication;
+import com.almasb.fxgl.app.GameSettings;
+import com.almasb.fxgl.dsl.FXGL;
+import com.almasb.fxgl.entity.Entity;
+import com.almasb.fxgl.entity.SpawnData;
+import com.roguelike.controller.Batalha;
+import com.roguelike.entity.FabricaEntidades;
+import com.roguelike.entity.PersonagemComponent;
+import com.roguelike.model.Inimigo;
+import com.roguelike.model.Jogador;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+
+public class Main extends GameApplication {
+
+    private Entity entidadeJogador;
+    private Entity entidadeInimigo;
+    private Batalha batalhaAtual;
+    private int progresso = 0;
+
+    private final Object[][] filaInimigos = {
+        {"m1", 30, 6, 4, 0},
+        {"boss1", 80, 10, 5, 1},
+        {"m2", 40, 7, 5, 0},
+        {"m3", 45, 8, 5, 0},
+        {"boss2", 130, 13, 6, 1},
+        {"m4", 55, 9, 6, 0},
+        {"m5", 60, 10, 6, 0},
+        {"m6", 65, 11, 7, 0},
+        {"boss3", 110, 16, 7, 1},
+        {"boss3 2 fase", 110, 20, 7, 1}
+    };
+
+    private Pane rootUI;
+    private Text txtTurno;
+    private Text txtStatusJogador;
+    private Text txtStatusInimigo;
+    private Text txtMensagem;
+    private HBox boxBotoes;
+
+    @Override
+    protected void initSettings(GameSettings settings) {
+        settings.setWidth(800);
+        settings.setHeight(600);
+        settings.setTitle("Roguelike FXGL");
+        settings.setVersion("2.0");
+    }
+
+    @Override
+    protected void initGame() {
+        FXGL.getGameWorld().addEntityFactory(new FabricaEntidades());
+        FXGL.getGameScene().setBackgroundColor(Color.web("#1e1e2e"));
+        mostrarEcraSelecaoPersonagem();
+    }
+
+    private void mostrarEcraSelecaoPersonagem() {
+        VBox menuInicial = new VBox(15);
+        menuInicial.setAlignment(Pos.CENTER);
+        menuInicial.setPrefSize(800, 600);
+        menuInicial.setStyle("-fx-background-color: #181825; -fx-padding: 30;");
+
+        Text titulo = criarTexto("BEM-VINDO AO ROGUELIKE!", 28, Color.GOLD);
+        Text lblNome = criarTexto("Digite o nome do seu personagem:", 16, Color.WHITE);
+        
+        TextField inputNome = new TextField("Herói");
+        inputNome.setMaxWidth(250);
+        inputNome.setStyle("-fx-font-size: 14px;");
+
+        Text lblClasse = criarTexto("Escolha a sua classe para iniciar:", 18, Color.LIGHTGRAY);
+
+        Button btnGuerreiro = criarBotaoClasse(
+                " (1) Guerreiro | HP: 150 | MP: 20 | ATK: 11 | SPD: 5 \n" +
+                " Hab 1: Golpe Pesado (1.5x) | Hab 2: Defesa de Ferro (Metade dano + Contra-ataque) \n" +
+                " Hab 3: Grito de Guerra (+5 ATK) | Hab 4: Investida Final (2.5x) ",
+                () -> iniciarCampanha(inputNome.getText(), 1)
+        );
+
+        Button btnLadino = criarBotaoClasse(
+                " (2) Ladino | HP: 70 | MP: 25 | ATK: 16 | SPD: 9 \n" +
+                " Hab 1: Ataque Duplo (2 ações) | Hab 2: Golpe Sujo (1.5x + Pula turno inimigo) \n" +
+                " Hab 3: Roubo de Vida (Dano + Cura) | Hab 4: Ataque Furtivo (3x) ",
+                () -> iniciarCampanha(inputNome.getText(), 2)
+        );
+
+        Button btnMago = criarBotaoClasse(
+                " (3) Mago | HP: 65 | MP: 60 | ATK: 14 | SPD: 6 \n" +
+                " Hab 1: Bola de Fogo (2x) | Hab 2: Cura Básica (+20 HP) \n" +
+                " Hab 3: Dreno de Alma (0.5x + 15 MP) | Hab 4: Meteoro (3x) ",
+                () -> iniciarCampanha(inputNome.getText(), 3)
+        );
+
+        Text obs = criarTexto("OBS: As habilidades 3 e 4 são desbloqueadas ao derrotar o Boss 1 e Boss 2.", 13, Color.ORANGE);
+
+        menuInicial.getChildren().addAll(titulo, lblNome, inputNome, lblClasse, btnGuerreiro, btnLadino, btnMago, obs);
+        FXGL.addUINode(menuInicial);
+    }
+
+    private void iniciarCampanha(String nome, int classe) {
+        FXGL.getGameScene().clearUINodes();
+        String nomeFinal = (nome == null || nome.trim().isEmpty()) ? "Jogador" : nome.trim();
+
+        entidadeJogador = FXGL.spawn("jogador", new SpawnData(180, 220)
+                .put("nome", nomeFinal)
+                .put("classe", classe));
+
+        construirHUDBatalha();
+        iniciarProximaBatalha();
+    }
+
+    private void construirHUDBatalha() {
+        rootUI = new Pane();
+
+        Rectangle bgTopo = new Rectangle(800, 90, Color.web("#11111b", 0.85));
+        txtTurno = criarTexto("TURNO 1", 20, Color.GOLD);
+        txtTurno.setTranslateX(360);
+        txtTurno.setTranslateY(30);
+
+        txtStatusJogador = criarTexto("", 16, Color.LIGHTBLUE);
+        txtStatusJogador.setTranslateX(30);
+        txtStatusJogador.setTranslateY(65);
+
+        txtStatusInimigo = criarTexto("", 16, Color.SALMON);
+        txtStatusInimigo.setTranslateX(520);
+        txtStatusInimigo.setTranslateY(65);
+
+        Rectangle bgBase = new Rectangle(800, 220, Color.web("#11111b", 0.9));
+        bgBase.setTranslateY(380);
+
+        txtMensagem = criarTexto("", 16, Color.WHITE);
+        txtMensagem.setTranslateX(40);
+        txtMensagem.setTranslateY(425);
+
+        boxBotoes = new HBox(15);
+        boxBotoes.setAlignment(Pos.CENTER);
+        boxBotoes.setPrefWidth(800);
+        boxBotoes.setTranslateY(500);
+
+        rootUI.getChildren().addAll(bgTopo, txtTurno, txtStatusJogador, txtStatusInimigo, bgBase, txtMensagem, boxBotoes);
+        FXGL.addUINode(rootUI);
+    }
+
+    private void iniciarProximaBatalha() {
+        if (progresso >= filaInimigos.length) {
+            mostrarRelatorioFinal(true);
+            return;
+        }
+
+        Object[] dados = filaInimigos[progresso];
+
+        entidadeInimigo = FXGL.spawn("inimigo", new SpawnData(580, 220)
+                .put("nome", (String) dados[0])
+                .put("hp", (int) dados[1])
+                .put("atk", (int) dados[2])
+                .put("spd", (int) dados[3])
+                .put("boss", (int) dados[4]));
+
+        batalhaAtual = new Batalha(
+                entidadeJogador,
+                entidadeInimigo,
+                progresso,
+                this::aoVencerInimigo,
+                () -> mostrarRelatorioFinal(false),
+                this::atualizarHUD
+        );
+
+        atualizarHUD();
+        mostrarMenuPrincipal();
+    }
+
+    private void aoVencerInimigo() {
+        Inimigo i = entidadeInimigo.getComponent(PersonagemComponent.class).getInimigo();
+        entidadeInimigo.removeFromWorld();
+        progresso++;
+
+        FXGL.getDialogService().showMessageBox(i.getNome() + " foi derrotado!\n", this::iniciarProximaBatalha);
+    }
+
+    private void atualizarHUD() {
+        Jogador j = entidadeJogador.getComponent(PersonagemComponent.class).getJogador();
+        Inimigo i = entidadeInimigo.getComponent(PersonagemComponent.class).getInimigo();
+
+        txtTurno.setText("TURNO " + batalhaAtual.getTurno());
+        txtStatusJogador.setText(String.format("[ %s ]  HP: %d/%d  |  MP: %d/%d  |  ATK: %d",
+                j.getNome(), j.getHP(), j.getHPMax(), j.getMP(), j.getMPMax(), j.getATK()));
+        txtStatusInimigo.setText(String.format("[ %s ]  HP: %d/%d  |  ATK: %d",
+                i.getNome(), i.getHP(), i.getHPMax(), i.getATK()));
+        txtMensagem.setText(batalhaAtual.getMensagem());
+    }
+
+    private void mostrarMenuPrincipal() {
+        boxBotoes.getChildren().clear();
+
+        Button btnAtacar = criarBotaoAcao("(1) Atacar", () -> batalhaAtual.atacar());
+        Button btnHabilidades = criarBotaoAcao("(2) Habilidades", this::mostrarMenuHabilidades);
+        Button btnItens = criarBotaoAcao("(3) Itens", this::mostrarMenuItens);
+
+        boxBotoes.getChildren().addAll(btnAtacar, btnHabilidades, btnItens);
+    }
+
+    private void mostrarMenuHabilidades() {
+        boxBotoes.getChildren().clear();
+        Jogador j = entidadeJogador.getComponent(PersonagemComponent.class).getJogador();
+        String[] habs = Batalha.getNomesHabilidades(j.getClasse());
+
+        for (int i = 0; i < 4; i++) {
+            final int opcao = i + 1;
+            Button btnHab = criarBotaoAcao(habs[i], () -> {
+                batalhaAtual.usarHabilidade(opcao);
+                mostrarMenuPrincipal();
+            });
+            boxBotoes.getChildren().add(btnHab);
+        }
+
+        Button btnVoltar = criarBotaoAcao("Voltar", this::mostrarMenuPrincipal);
+        boxBotoes.getChildren().add(btnVoltar);
+    }
+
+    private void mostrarMenuItens() {
+        boxBotoes.getChildren().clear();
+        Jogador j = entidadeJogador.getComponent(PersonagemComponent.class).getJogador();
+
+        Button btnPocHP = criarBotaoAcao("Poção HP (x" + j.pocaohp + ")", () -> {
+            batalhaAtual.usarItem(1);
+            mostrarMenuPrincipal();
+        });
+        Button btnPocMP = criarBotaoAcao("Poção MP (x" + j.pocaomp + ")", () -> {
+            batalhaAtual.usarItem(2);
+            mostrarMenuPrincipal();
+        });
+        Button btnBomba = criarBotaoAcao("Bomba (x" + j.bomba + ")", () -> {
+            batalhaAtual.usarItem(3);
+            mostrarMenuPrincipal();
+        });
+        Button btnVoltar = criarBotaoAcao("Voltar", this::mostrarMenuPrincipal);
+
+        boxBotoes.getChildren().addAll(btnPocHP, btnPocMP, btnBomba, btnVoltar);
+    }
+
+    private void mostrarRelatorioFinal(boolean zerou) {
+        Jogador j = entidadeJogador.getComponent(PersonagemComponent.class).getJogador();
+        String nomeClasse = (j.getClasse() == 1) ? "GUERREIRO" : (j.getClasse() == 2 ? "LADINO" : "MAGO");
+
+        String cabecalho = zerou
+                ? "VOCÊ DERROTOU O ÚLTIMO CHEFE!\nParabéns, terminou o jogo!\n\n"
+                : "DERROTA! GAME OVER\n\n";
+
+        String relatorio = cabecalho +
+                "Relatório de progressão do jogo:\n" +
+                "Nome: " + j.getNome() + " | Classe: " + nomeClasse + "\n" +
+                "HP MÁX: " + j.getHPMax() + " | MP MÁX: " + j.getMPMax() + "\n" +
+                "ATK: " + j.getATK() + " | SPD: " + j.getVelocidade() + "\n" +
+                "Poções HP: " + j.pocaohp + " | Poções MP: " + j.pocaomp + " | Bombas: " + j.bomba + "\n" +
+                "Inimigos derrotados: " + progresso;
+
+        FXGL.getDialogService().showMessageBox(relatorio, () -> FXGL.getGameController().exit());
+    }
+
+    private Text criarTexto(String conteudo, int tamanho, Color cor) {
+        Text t = new Text(conteudo);
+        t.setFont(Font.font("Consolas", FontWeight.BOLD, tamanho));
+        t.setFill(cor);
+        return t;
+    }
+
+    private Button criarBotaoAcao(String texto, Runnable acao) {
+        Button btn = new Button(texto);
+        btn.setStyle("-fx-background-color: #313244; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 10 16;");
+        btn.setOnAction(e -> acao.run());
+        return btn;
+    }
+
+    private Button criarBotaoClasse(String texto, Runnable acao) {
+        Button btn = new Button(texto);
+        btn.setPrefWidth(680);
+        btn.setStyle("-fx-background-color: #313244; -fx-text-fill: white; -fx-font-family: 'Consolas'; -fx-font-size: 13px; -fx-padding: 10;");
+        btn.setOnAction(e -> acao.run());
+        return btn;
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
